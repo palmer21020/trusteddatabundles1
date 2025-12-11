@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trusted Data Bundles</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+    body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; }
+    header { background:#007bff; padding:15px; color:white; text-align:center; font-size:22px; font-weight:bold; }
+    .container { padding:20px; }
+    .section-title { font-size:20px; margin-top:25px; font-weight:bold; }
+    .network-box { background:white; border-radius:10px; padding:15px; margin-bottom:20px;
+                   box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+    button { background:#007bff; color:white; border:none; padding:10px 15px; cursor:pointer;
+             border-radius:6px; font-size:16px; }
+    button:hover { opacity:0.9; }
+    .footer { text-align:center; margin-top:40px; padding:10px; font-size:14px; color:#777; }
+</style>
+</head>
+
+<body>
+<header>Trusted Data Bundles</header>
+
+<div class="container">
+
+    <h2 class="section-title">Buy Data Bundle</h2>
+
+    <div class="network-box">
+        <h3>MTN Data</h3>
+        <button onclick="buyBundle('mtn')">Buy MTN Bundle</button>
+    </div>
+
+    <div class="network-box">
+        <h3>Telecel Data</h3>
+        <button onclick="buyBundle('vodafone')">Buy Telecel Bundle</button>
+    </div>
+
+    <div class="network-box">
+        <h3>AirtelTigo Data</h3>
+        <button onclick="buyBundle('airteltigo')">Buy AirtelTigo Bundle</button>
+    </div>
+
+    <div class="network-box">
+        <h3>AirtelTigo iShare</h3>
+        <button onclick="buyBundle('ishare')">Buy iShare</button>
+    </div>
+
+    <div class="network-box">
+        <h3>AirtelTigo BigTime Bundles</h3>
+        <button onclick="buyBundle('bigtime')">Buy BigTime Data</button>
+    </div>
+
+    <h2 class="section-title">Dashboard</h2>
+    <div class="network-box">
+        <button onclick="location.href='dashboard.html'">Go to Dashboard</button>
+    </div>
+
+    <h2 class="section-title">Orders</h2>
+    <div class="network-box">
+        <button onclick="location.href='orders.html'">View All Orders</button>
+    </div>
+
+    <h2 class="section-title">Wallet Top-Up</h2>
+    <div class="network-box">
+        <p>Minimum top-up: <b>GHS 10</b></p>
+        <button onclick="location.href='wallet.html'">Top-Up Wallet</button>
+    </div>
+
+    <h2 class="section-title">Customer Support</h2>
+    <div class="network-box">
+        <p>Working Hours: <br><b>Monday – Saturday, 8:00am – 8:00pm</b></p>
+        <p>Contact: <b>0541896641</b></p>
+    </div>
+
+</div>
+
+<div class="footer">© 2025 Trusted Data Bundles. All Rights Reserved.</div>
+
+<script>
+function buyBundle(network) {
+    let phone = prompt("Enter phone number:");
+    if(!phone) return;
+
+    let size = prompt("Enter bundle size in MB:");
+    if(!size) return;
+
+    let reference = "ref-" + Date.now();
+
+    fetch("https://spfastit.com/wp-json/custom-api/v1/place-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            api_key: "28725d538f64293bcaf1c2f4dbc15767",
+            phone: phone,
+            size_mb: parseInt(size),
+            network: network,
+            reference: reference,
+            webhook_url: "https://yourdomain.com/api/webhook.php"
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        alert("Order sent!\nStatus: " + JSON.stringify(res));
+    })
+    .catch(err => alert("Error: " + err));
+}
+</script>
+
+</body>
+</html>
