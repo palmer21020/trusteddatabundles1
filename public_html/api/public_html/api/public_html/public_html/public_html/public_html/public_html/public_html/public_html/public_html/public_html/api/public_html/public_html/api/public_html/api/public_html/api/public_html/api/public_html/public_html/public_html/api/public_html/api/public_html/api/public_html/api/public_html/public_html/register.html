@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register • Trusted Data Bundles</title>
+    <style>
+        body {
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #111;
+        }
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 8px 0 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #111;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        a {
+            text-decoration: none;
+            color: #111;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Create Account</h2>
+
+        <form action="register_user.php" method="POST">
+            <input type="text" name="fullname" placeholder="Full Name" required>
+            <input type="text" name="phone" placeholder="Phone Number" required>
+            <input type="password" name="password" placeholder="Create Password" required>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <div class="footer">
+            Already have an account? <a href="login.html">Login</a>
+        </div>
+    </div>
+
+</body>
+</html>
