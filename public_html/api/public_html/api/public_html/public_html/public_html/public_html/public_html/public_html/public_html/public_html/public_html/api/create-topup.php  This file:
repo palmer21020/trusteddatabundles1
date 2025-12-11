@@ -1,0 +1,131 @@
+<?php
+/* ============================================================
+   Trusted Data Bundles – Create Wallet Top-Up
+   ------------------------------------------------------------
+   1. User enters amount.
+   2. We create a top-up record.
+   3. We send request to MTN MoMo API.
+   4. We return the payment link to frontend.
+   ------------------------------------------------------------ */
+
+header("Content-Type: application/json");
+session_start();
+
+// ============================================================
+// Check login
+// ============================================================
+
+if (!isset($_SESSION["user_id"])) {
+    echo json_encode(["error" => "not_logged_in"]);
+    exit;
+}
+
+$user_id = $_SESSION["user_id"];
+
+// ============================================================
+// DB Connection
+// ============================================================
+
+$host = "localhost";
+$user = "db_user"; // CHANGE
+$pass = "db_pass"; // CHANGE
+$db   = "trusted_bundles";
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+    echo json_encode(["error" => "DB connection failed"]);
+    exit;
+}
+
+// ============================================================
+// Read Input
+// ============================================================
+
+$raw = file_get_contents("php://input");
+$data = json_decode($raw, true);
+
+$amount = floatval($data["amount"] ?? 0);
+
+if ($amount < 10) {
+    echo json_encode(["error" => "minimum_topup_is_10"]);
+    exit;
+}
+
+// ============================================================
+// Create Unique Reference
+// ============================================================
+
+$reference = "TOPUP-" . time() . "-" . rand(1000,9999);
+
+// Save transaction in DB
+$conn->query("
+    INSERT INTO wallet_topups (user_id, amount, reference, status, created_at)
+    VALUES ($user_id, $amount, '$reference', 'pending', NOW())
+");
+
+// ============================================================
+// MTN MoMo API CONFIG
+// ============================================================
+
+$consumer_key    = "U8HfXXXXXXXXXXXXXXXXXXXXXXXXfK0T";
+$consumer_secret = "QOFnXXXXXXXXAh4e";
+$currency        = "GHS";
+$callback_url    = "https://yourdomain.com/wallet-callback.php"; // UPDATE THIS
+
+// ============================================================
+// Generate Payment Request
+// ============================================================
+
+$payload = [
+    "amount"      => $amount,
+    "currency"    => $currency,
+    "externalId"  => $reference,
+    "payer" => [
+        "partyIdType" => "MSISDN",
+        "partyId"     => "0541896641"   // User pays from this phone (change if needed)
+    ],
+    "payerMessage" => "Wallet Top-Up",
+    "payeeNote"    => "Trusted Data Bundles Wallet"
+];
+
+$ch = curl_init("https://sandbox.momodeveloper.mtn.com/collection/v1_0/requesttopay");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Authorization: Basic " . base64_encode("$consumer_key:$consumer_secret"),
+    "X-Reference-Id: $reference",
+    "X-Target-Environment: sandbox",
+    "Content-Type: application/json"
+]);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+$response = curl_exec($ch);
+$error = curl_error($ch);
+curl_close($ch);
+
+// Log for debugging
+file_put_contents(__DIR__ . "/momo_request_log.txt",
+    date("c") . " REQUEST: " . json_encode($payload) . " RESPONSE: " . $response . "\n",
+    FILE_APPEND
+);
+
+if ($error) {
+    echo json_encode(["error" => "momo_error", "detail" => $error]);
+    exit;
+}
+
+// ============================================================
+// Return Payment URL to frontend
+// ============================================================
+
+$payment_url = "https://sandbox.momodeveloper.mtn.com/collection/?ref=$reference";
+
+echo json_encode([
+    "ok" => true,
+    "reference" => $reference,
+    "payment_url" => $payment_url
+]);
+
+?>
