@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet – Trusted Data Bundles</title>
+
+    <style>
+        body {
+            background: #f2f4f8;
+            font-family: Arial, sans-serif;
+        }
+        .topbar {
+            background: #004aad;
+            color: #fff;
+            padding: 15px;
+            font-size: 21px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 25px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .balance-box {
+            background: #004aad;
+            color: #fff;
+            padding: 25px;
+            font-size: 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .balance-box span {
+            font-size: 40px;
+            font-weight: bold;
+        }
+        .btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 14px;
+            background: #004aad;
+            color: #fff;
+            text-align: center;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 17px;
+        }
+        .btn:hover {
+            background: #003a87;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            margin-top: 25px;
+            border-collapse: collapse;
+        }
+        th {
+            background: #004aad;
+            color: #fff;
+            padding: 12px;
+            font-size: 15px;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="topbar">💰 Wallet</div>
+
+<div class="container">
+
+    <div class="balance-box">
+        Current Balance<br>
+        <span id="walletBalance">GHC 0.00</span>
+    </div>
+
+    <h3>Top-up Wallet (Min 10 GHS)</h3>
+
+    <div class="form-group">
+        <input type="number" id="amount" placeholder="Enter amount (min 10 GHS)">
+    </div>
+
+    <button class="btn" onclick="topUpWallet()">Top-up Now</button>
+
+    <h3 style="margin-top: 35px;">Transaction History</h3>
+
+    <table id="walletTable">
+        <thead>
+        <tr>
+            <th>Reference</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    function loadWallet() {
+        fetch("api/get_wallet.php")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("walletBalance").textContent =
+                    "GHC " + parseFloat(data.balance).toFixed(2);
+
+                let tbody = document.querySelector("#walletTable tbody");
+                tbody.innerHTML = "";
+
+                data.transactions.forEach(t => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${t.reference}</td>
+                            <td>GHC ${t.amount}</td>
+                            <td>${t.type}</td>
+                            <td>${t.status}</td>
+                            <td>${t.created_at}</td>
+                        </tr>
+                    `;
+                });
+            });
+    }
+
+    function topUpWallet() {
+        let amt = document.getElementById("amount").value;
+
+        if (amt < 10) {
+            alert("Minimum top-up amount is 10 GHS.");
+            return;
+        }
+
+        let ref = "WT" + Date.now();
+
+        fetch("api/wallet_topup.php", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                api_key: "28725d538f64293bcaf1c2f4dbc15767",
+                amount: amt,
+                reference: ref,
+                phone: "0541896641", // Owner contact number
+                currency: "GHS"
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                loadWallet();
+            })
+            .catch(err => console.error(err));
+    }
+
+    loadWallet();
+</script>
+
+</body>
+</html>
