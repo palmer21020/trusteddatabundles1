@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders – Trusted Data Bundles</title>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: Arial, sans-serif;
+        }
+        .topbar {
+            background: #004aad;
+            color: #fff;
+            padding: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 25px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table th, table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e5e5;
+            font-size: 15px;
+            text-align: left;
+        }
+        table th {
+            background: #004aad;
+            color: #fff;
+        }
+        .status {
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+        }
+        .pending { background: #ff9800; }
+        .success { background: #4caf50; }
+        .failed { background: #f44336; }
+        .refresh-btn {
+            background: #004aad;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">📦 Order History</div>
+
+<div class="container">
+
+    <button class="refresh-btn" onclick="loadOrders()">Refresh Orders</button>
+
+    <table id="ordersTable">
+        <thead>
+        <tr>
+            <th>Reference</th>
+            <th>Phone</th>
+            <th>Network</th>
+            <th>Bundle</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+</div>
+
+<script>
+    function loadOrders() {
+        fetch("api/get_orders.php")
+            .then(res => res.json())
+            .then(data => {
+                let tbody = document.querySelector("#ordersTable tbody");
+                tbody.innerHTML = "";
+
+                data.forEach(order => {
+                    let statusClass =
+                        order.status === "success" ? "success" :
+                        order.status === "failed" ? "failed" : "pending";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${order.reference}</td>
+                            <td>${order.phone}</td>
+                            <td>${order.network.toUpperCase()}</td>
+                            <td>${order.size_mb} MB</td>
+                            <td>GHC ${order.price}</td>
+                            <td><span class="status ${statusClass}">${order.status}</span></td>
+                            <td>${order.created_at}</td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(err => console.error("Error:", err));
+    }
+
+    loadOrders();
+</script>
+
+</body>
+</html>
